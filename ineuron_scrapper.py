@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 from helium import *
 import json
-import time
+import os
 
 
 class ineuronScrapper:
@@ -178,6 +178,10 @@ class ineuronScrapper:
             for course_title in self.getCourseCategory()[:4]:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
+
+                print(os.system('chromedriver --version'))
+                self.logger.info(os.system('chromedriver --version'))
+
                 browser = start_chrome(course_link, headless=True)
                 response = requests.get(course_link)
                 response.raise_for_status()
@@ -206,13 +210,3 @@ class ineuronScrapper:
             return course_details
         except Exception as e:
             print("[getCourseDetails]: Error occurred while extracting CourseDetails", str(e))
-
-
-
-
-
-
-
-
-
-
