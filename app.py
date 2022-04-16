@@ -32,7 +32,7 @@ def scrap():
                     course_details = [i for i in response]
                     if bool(course_details):
                         log.info("Fetching data from database")
-                        return render_template("output.html", course_details = course_details, course_title = inputString )
+                        return render_template("output.html", course_details=course_details, course_title=inputString)
             else:
                 scrapper_obj = ineuronScrapper(inputString, refactor_obj, db_obj)
                 return render_template("output.html", course_details=scrapper_obj.getCourseDetails(), course_title = inputString)
