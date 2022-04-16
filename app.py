@@ -35,7 +35,7 @@ def scrap():
                         return render_template("output.html", course_details = course_details, course_title = inputString )
             else:
                 scrapper_obj = ineuronScrapper(inputString, refactor_obj, db_obj)
-                return render_template("output.html", course_details=scrapper_obj.getCourseDetails())
+                return render_template("output.html", course_details=scrapper_obj.getCourseDetails(), course_title = inputString)
         except Exception as e:
             print("(app.py) - Something went wrong while rendering all the details of product.\n" + str(e))
 
