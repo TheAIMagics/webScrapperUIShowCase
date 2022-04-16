@@ -2,16 +2,12 @@ from urllib.request import urlopen
 from loggerMainClass import scrapLogger
 from bs4 import BeautifulSoup
 import requests
-from helium import *
 import json
 import os
 from selenium import webdriver
 
-#DRIVER_PATH = r'chromedriver.exe'
 DRIVER_PATH = r'chromedriver.exe'
-
 DEV_BUILD = True
-PRODUCTION_BUILD = False
 
 class ineuronScrapper:
     def __init__(self, course_name, refactor_object, db_object):
@@ -36,7 +32,8 @@ class ineuronScrapper:
             self.logger.info("uClient hitted")
             category_page_html = BeautifulSoup(ineuron_page, "html.parser")
             self.logger.info("Page parsed")
-            script_tag_data = json.loads(category_page_html.find('script', {"id": "__NEXT_DATA__"}, type="application/json").text)
+            script_tag_data = json.loads(
+                category_page_html.find('script', {"id": "__NEXT_DATA__"}, type="application/json").text)
             scrapped_courses = script_tag_data['props']['pageProps']['initialState']['filter']['initCourses']
             self.logger.info("scrapped_courses fetched")
             self.logger.info('All courses scrapped')
@@ -104,7 +101,7 @@ class ineuronScrapper:
                 class_timing = "NA"
                 doubt_timing = "NA"
             self.logger.info('Scrapped course class_timing')
-            return class_timing,doubt_timing
+            return class_timing, doubt_timing
         except Exception as e:
             print("[getClassTimings]: Error occurred while extracting class_timing", str(e))
 
@@ -144,13 +141,12 @@ class ineuronScrapper:
                     scrapped_list.append(li.text)
                 if len(scrapped_list) == 0:
                     scrapped_list.append("NA")
-            #self.logger.info(f"Scrapped {flag_value}").format(flag_value)
             self.logger.info("Scrapped scrapped_list")
             return scrapped_list
         except Exception as e:
             print(f"[{flag_value}]: Error occurred while extracting {flag_value}", str(e)).format(flag_value)
 
-    def getCurriculumList(self,soup_obj):
+    def getCurriculumList(self, soup_obj):
         """
         This function scraps all course curriculum Lists of particular course.
         :param : beautifulSoup object
@@ -166,7 +162,8 @@ class ineuronScrapper:
                         for li in single_card.find("ul"):
                             course_topics.append(li.text)
                         course_curriculum_list.append({"heading": course_heading, "topics": course_topics})
-            else : course_curriculum_list.append({"heading": "NA", "topics": "NA"})
+            else:
+                course_curriculum_list.append({"heading": "NA", "topics": "NA"})
             self.logger.info("Scrapped course_curriculum_list")
             return course_curriculum_list
         except Exception as e:
@@ -185,9 +182,6 @@ class ineuronScrapper:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
 
-                #print('chromedriver --version')
-                #self.logger.info(os.system('chromedriver --version'))
-
                 chrome_options = webdriver.ChromeOptions()
                 chrome_options.add_argument("--headless")
                 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -195,11 +189,12 @@ class ineuronScrapper:
                 chrome_options.add_argument('--disable-gpu')
 
                 if not DEV_BUILD:
+                    print("Chrome Driver version: ", os.system('chromedriver --version'))
                     driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
                 else:
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-                    #driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"))
-                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                              chrome_options=chrome_options)
 
                 driver.get(course_link)
                 response = requests.get(course_link)
