@@ -181,7 +181,7 @@ class ineuronScrapper:
         try:
             course_details = []
             self.db_object.createCollection(self.course_name)
-            for course_title in self.getCourseCategory()[:1]:
+            for course_title in self.getCourseCategory()[:11]:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
 
