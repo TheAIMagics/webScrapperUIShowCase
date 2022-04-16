@@ -5,9 +5,10 @@ import requests
 import json
 import os
 from selenium import webdriver
+from helium import *
 
 DRIVER_PATH = r'chromedriver.exe'
-DEV_BUILD = True
+DEV_BUILD = False
 
 class ineuronScrapper:
     def __init__(self, course_name, refactor_object, db_object):
@@ -32,8 +33,7 @@ class ineuronScrapper:
             self.logger.info("uClient hitted")
             category_page_html = BeautifulSoup(ineuron_page, "html.parser")
             self.logger.info("Page parsed")
-            script_tag_data = json.loads(
-                category_page_html.find('script', {"id": "__NEXT_DATA__"}, type="application/json").text)
+            script_tag_data = json.loads(category_page_html.find('script', {"id": "__NEXT_DATA__"}, type="application/json").text)
             scrapped_courses = script_tag_data['props']['pageProps']['initialState']['filter']['initCourses']
             self.logger.info("scrapped_courses fetched")
             self.logger.info('All courses scrapped')
@@ -178,28 +178,43 @@ class ineuronScrapper:
         try:
             course_details = []
             self.db_object.createCollection(self.course_name)
-            for course_title in self.getCourseCategory():
+
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument('--disable-gpu')
+
+            if DEV_BUILD:
+                print("Chrome Driver version: ", os.system('chromedriver --version'))
+                driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
+            else:
+                chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+                driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                          chrome_options=chrome_options)
+
+            for course_title in self.getCourseCategory()[:10]:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
 
-                chrome_options = webdriver.ChromeOptions()
-                chrome_options.add_argument("--headless")
+                '''chrome_options = webdriver.ChromeOptions()
+                #chrome_options.add_argument("--headless")
                 chrome_options.add_argument("--disable-dev-shm-usage")
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument('--disable-gpu')
 
-                if not DEV_BUILD:
+                if DEV_BUILD:
                     print("Chrome Driver version: ", os.system('chromedriver --version'))
                     driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
                 else:
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-                                              chrome_options=chrome_options)
+                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)'''
 
                 driver.get(course_link)
                 response = requests.get(course_link)
                 response.raise_for_status()
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
+
                 self.logger.info("Fetched HTML parsed page")
                 course_dictionary = {
                     "Course_Name": self.getCourseTitle(soup),
@@ -219,6 +234,9 @@ class ineuronScrapper:
                 }
                 course_details.append(course_dictionary)
                 self.logger.info("course details")
+
+            driver.close()
+
             self.db_object.insertDocument(course_details)
             self.logger.info("collected all course details")
             return course_details
