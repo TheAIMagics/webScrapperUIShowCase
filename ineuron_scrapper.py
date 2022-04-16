@@ -5,7 +5,13 @@ import requests
 from helium import *
 import json
 import os
+from selenium import webdriver
 
+#DRIVER_PATH = r'chromedriver.exe'
+DRIVER_PATH = r'chromedriver.exe'
+
+DEV_BUILD = True
+PRODUCTION_BUILD = False
 
 class ineuronScrapper:
     def __init__(self, course_name, refactor_object, db_object):
@@ -175,17 +181,30 @@ class ineuronScrapper:
         try:
             course_details = []
             self.db_object.createCollection(self.course_name)
-            for course_title in self.getCourseCategory()[:4]:
+            for course_title in self.getCourseCategory()[:1]:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
 
-                print(os.system('chromedriver --version'))
+                print('chromedriver --version')
                 self.logger.info(os.system('chromedriver --version'))
 
-                browser = start_chrome(course_link, headless=True)
+                chrome_options = webdriver.ChromeOptions()
+                chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument('--disable-gpu')
+
+                if DEV_BUILD == True:
+                    driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
+                else:
+                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+                    #driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"))
+                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+
+                driver.get(course_link)
                 response = requests.get(course_link)
                 response.raise_for_status()
-                soup = BeautifulSoup(browser.page_source, 'html.parser')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
                 self.logger.info("Fetched HTML parsed page")
                 course_dictionary = {
                     "Course_Name": self.getCourseTitle(soup),
