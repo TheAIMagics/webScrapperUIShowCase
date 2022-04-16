@@ -15,7 +15,7 @@ class ineuronScrapper:
         """
         Constructor initialization
         """
-        self.url_path = refactor_object.getIneuronUrl();
+        self.url_path = refactor_object.getIneuronUrl()
         self.course_name = course_name
         self.db_object = db_object
         self.refactor_object = refactor_object
@@ -192,24 +192,13 @@ class ineuronScrapper:
                 chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
                 driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                           chrome_options=chrome_options)
-
-            for course_title in self.getCourseCategory()[:10]:
+            length = len(self.getCourseCategory())
+            if length >= 15:
+                length = 15
+            for course_title in self.getCourseCategory()[:length]:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
-
-                '''chrome_options = webdriver.ChromeOptions()
-                #chrome_options.add_argument("--headless")
-                chrome_options.add_argument("--disable-dev-shm-usage")
-                chrome_options.add_argument("--no-sandbox")
-                chrome_options.add_argument('--disable-gpu')
-
-                if DEV_BUILD:
-                    print("Chrome Driver version: ", os.system('chromedriver --version'))
-                    driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
-                else:
-                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-                    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)'''
-
+                
                 driver.get(course_link)
                 response = requests.get(course_link)
                 response.raise_for_status()
