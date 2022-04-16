@@ -185,8 +185,8 @@ class ineuronScrapper:
                 course_link = self.refactor_object.getIneuronUrl() + course_title
                 self.logger.info("course_link fetched")
 
-                print('chromedriver --version')
-                self.logger.info(os.system('chromedriver --version'))
+                #print('chromedriver --version')
+                #self.logger.info(os.system('chromedriver --version'))
 
                 chrome_options = webdriver.ChromeOptions()
                 chrome_options.add_argument("--headless")
@@ -194,7 +194,7 @@ class ineuronScrapper:
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument('--disable-gpu')
 
-                if DEV_BUILD == True:
+                if not DEV_BUILD:
                     driver = webdriver.Chrome(executable_path=DRIVER_PATH, chrome_options=chrome_options)
                 else:
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
